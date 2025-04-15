@@ -8,54 +8,110 @@
 
 Author: [Henry Ndubuaku](https://www.linkedin.com/in/henry-ndubuaku-7b6350b8/) 
 
-## CUDA
+## Table of Contents
 
-CUDA (Compute Unified Device Architecture) is a parallel computing platform and programming model developed by NVIDIA. 
-It allows software developers to leverage the immense parallel processing power of NVIDIA GPUs (Graphics Processing Units) 
-for general-purpose computing tasks beyond their traditional role in graphics rendering. 
-GPUs are designed with thousands of smaller, more efficient cores optimized for handling multiple tasks simultaneously. 
-This makes them exceptionally well-suited for tasks that can be broken down into many independent operations, 
-such as scientific simulations, machine learning, video processing, and more.
-CUDA enables substantial speedups compared to traditional CPU-only code for suitable applications. 
-GPUs can process vast amounts of data in parallel, accelerating computations that would take much longer on CPUs.
-For certain types of workloads, GPUs can be more energy-efficient than CPUs, delivering higher performance per watt.
+- [Introduction](#introduction)
+- [What is a GPU?](#what-is-a-gpu)
+- [Overview of GPU Architecture](#overview-of-gpu-architecture)
+- [Introduction to CUDA](#introduction-to-cuda)
+- [The CUDA Programming Model](#the-cuda-programming-model)
+  - [Kernels and Thread Hierarchy](#kernels-and-thread-hierarchy)
+  - [Memory Hierarchy](#memory-hierarchy)
+- [Writing CUDA Code: A Simple Example](#writing-cuda-code-a-simple-example)
+- [Start tutorial](#start-tutorial)
 
-### CUDA Code Structure
+---
 
-Host Code (CPU): This is standard C/C++ code that runs on the CPU. It typically includes:
-- Initialization of CUDA devices and contexts.
-- Allocation of memory on the GPU.
-- Transfer of data from CPU to GPU.
-- Launching CUDA kernels (functions that execute on the GPU).
-- Transfer of results back from GPU to CPU.
-- Deallocation of GPU memory.
+## Introduction
 
-Device Code (GPU): This code, often written using the CUDA C/C++ extension, is specifically designed to run on the GPU. It defines:
-- Kernels: Functions executed in parallel by many GPU threads. Each thread receives a unique thread ID that helps it determine its portion of the work.
-- Thread Hierarchy: GPU threads are organized into blocks and grids, allowing for efficient execution across the GPU's architecture.
+GPUs were originally designed to accelerate graphics rendering but have evolved into powerful parallel processors capable of handling a wide range of computation-intensive tasks. By leveraging hundreds or thousands of cores, GPUs excel at executing many operations concurrently, making them ideal for high-performance computing, deep learning, scientific simulations, and more.
+
+CUDA (Compute Unified Device Architecture) is NVIDIA’s parallel computing platform and programming model. It enables developers to harness the power of NVIDIA GPUs to accelerate their applications.
+
+---
+
+## What is a GPU?
+
+A **GPU (Graphics Processing Unit)** is a specialized processor designed for parallel processing. Key points include:
+
+- **Massively Parallel Architecture:** Consists of hundreds to thousands of small cores that perform simple computations concurrently.
+- **Throughput-Oriented Design:** Optimized for executing many operations simultaneously rather than a few complex ones.
+- **Diverse Applications:** Beyond graphics rendering, GPUs are used in scientific computing, machine learning, image processing, and real-time analytics.
+
+---
+
+## Overview of GPU Architecture
+
+GPUs differ from CPUs in several essential ways:
+
+- **Many-Core Design:** GPUs include multiple Streaming Multiprocessors (SMs), each with many smaller cores.
+- **SIMT Model (Single Instruction, Multiple Threads):** Multiple threads execute the same instruction on different pieces of data simultaneously.
+- **Memory Hierarchy:**
+  - **Global Memory:** Large capacity, accessible by all threads, but with high latency.
+  - **Shared Memory:** Low-latency, fast memory accessible within a block of threads.
+  - **Registers:** Very fast memory, private to each thread.
+- **Latency Hiding:** GPUs keep cores busy by switching between threads to mask memory access latencies.
+
+---
+
+## Introduction to CUDA
+
+CUDA is NVIDIA's parallel computing platform and application programming interface (API) that enables developers to use NVIDIA GPUs for general-purpose processing. Its main components are:
+
+- **CUDA C/C++ Extensions:** Language enhancements for parallel kernel development.
+- **Runtime and Driver APIs:** Manage GPU memory allocation, kernel launches, and synchronization.
+- **Portability and Integration:** Although CUDA is specific to NVIDIA GPUs, its concepts have influenced parallel programming models on other platforms.
+
+---
+
+## The CUDA Programming Model
+
+CUDA abstracts the GPU as a device capable of executing thousands of threads organized in a structured hierarchy.
+
+### Kernels and Thread Hierarchy
+
+- **Kernel:** A function defined to run on the GPU, marked with the `__global__` keyword.
+- **Thread:** The smallest unit of execution. Each thread runs an instance of the kernel.
+- **Block:** A group of threads that can share data through fast shared memory and synchronize their execution.
+- **Grid:** A collection of thread blocks executing the same kernel.
+
+**Diagram:**
 
 
-## Prelimnary Videos
+### Memory Hierarchy
 
-### 1. High-Level Concepts
-[![YouTube Video](https://img.youtube.com/vi/4APkMJdiudU/0.jpg)](https://www.youtube.com/watch?v=4APkMJdiudU)
+- **Global Memory:** High-capacity, accessible by all threads, but with higher latency.
+- **Shared Memory:** Accessible only by threads within the same block, offering much lower latency.
+- **Constant and Texture Memory:** Specialized spaces optimized for specific data access patterns.
+- **Registers:** Fast, per-thread storage for frequently used variables.
 
-### 2. Programming Model
-[![YouTube Video](https://img.youtube.com/vi/cKI20rITSvo/0.jpg)](https://www.youtube.com/watch?v=cKI20rITSvo)
+---
 
-### 3. Parallelising a For Loop
-[![YouTube Video](https://img.youtube.com/vi/BSzoEXqP9aU/0.jpg)](https://www.youtube.com/watch?v=BSzoEXqP9aU)
+## Writing CUDA Code: A Simple Example
 
-### 4. Indexing Threads within Grids and Blocks
-[![YouTube Video](https://img.youtube.com/vi/cRY5utouJzQ/0.jpg)](https://www.youtube.com/watch?v=cRY5utouJzQ)
+Below is a minimal CUDA program written in C++:
 
-### 5. Memory Model
-[![YouTube Video](https://img.youtube.com/vi/OSpy-HoR0ac/0.jpg)](https://www.youtube.com/watch?v=OSpy-HoR0ac)
+```cpp
+#include <stdio.h>
 
-### 6. Synchronisation
-[![YouTube Video](https://img.youtube.com/vi/PJCISyoGpug/0.jpg)](https://www.youtube.com/watch?v=PJCISyoGpug)
+// Kernel definition: runs on the GPU
+__global__ void helloCUDA() {
+    // Each thread prints its thread index
+    printf("Hello from GPU thread %d\n", threadIdx.x);
+}
 
-## Usage
+int main() {
+    // Launch the kernel with 1 block of 10 threads
+    helloCUDA<<<1, 10>>>();
 
-You can compile and run any file using `nvcc <filename> -o output && ./output`, but be sure to have a GPU with the appropriate libraries installed. Starting from step 1, we progressively learn CUDA in the context of Mathematics and Machine Learning. Ideal for Researchers and Applied experts hoping to learn how to scale their algorithms on GPUS.
+    // Synchronize to ensure GPU execution completes before program exit
+    cudaDeviceSynchronize();
+
+    return 0;
+}
+```
+
+# Stert tutorials
+
+The files are numbered by progression order and thoroughy explained, simply read through to understand each concept, then compile and run any of the files using `nvcc <filename> -o output && ./output`, but be sure to have a GPU with the appropriate libraries installed.
 
